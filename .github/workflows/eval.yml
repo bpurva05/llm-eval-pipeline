@@ -1,0 +1,96 @@
+name: LLM Eval Pipeline
+
+on:
+  pull_request:
+    paths:
+      - "prompts/**"
+      - "golden_dataset/**"
+      - "src/**"
+
+jobs:
+  eval:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Cache pip
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('requirements.txt') }}
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Restore eval history
+        uses: actions/cache@v4
+        with:
+          path: data/eval_history.db
+          # Keyed on the base branch so PRs diff against main's latest run,
+          # not against another in-flight PR's run.
+          key: eval-history-${{ github.base_ref }}
+          restore-keys: eval-history-
+
+      - name: Determine changed prompt version
+        id: prompt
+        run: |
+          CHANGED=$(git diff --name-only origin/${{ github.base_ref }} -- prompts/ | grep -oP 'classifier_\K[^.]+' | tail -1)
+          if [ -z "$CHANGED" ]; then
+            echo "version=" >> "$GITHUB_OUTPUT"
+          else
+            echo "version=$CHANGED" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Run eval
+        id: run_eval
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+        run: |
+          if [ -n "${{ steps.prompt.outputs.version }}" ]; then
+            python run_eval.py --prompt-version ${{ steps.prompt.outputs.version }}
+          else
+            python run_eval.py
+          fi
+
+      - name: Upload HTML report artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: eval-report
+          path: reports/*.html
+
+      - name: Save eval history for future runs
+        if: always()
+        uses: actions/cache/save@v4
+        with:
+          path: data/eval_history.db
+          key: eval-history-${{ github.base_ref }}-${{ github.run_id }}
+
+      - name: Comment on PR
+        if: always()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const glob = require('glob');
+            const files = glob.sync('reports/*.html');
+            const latest = files.sort().pop();
+            const body = latest
+              ? `🧪 **Eval pipeline ran.** See the \`eval-report\` artifact for the full diff report (regressions, per-category accuracy, trend chart).`
+              : `🧪 Eval pipeline ran but no report was generated -- check the job logs.`;
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body,
+            });
