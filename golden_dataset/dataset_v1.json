@@ -1,0 +1,247 @@
+{
+  "dataset_version": "v1",
+  "created_at": "2026-08-01T00:00:00Z",
+  "description": "Hand-labeled golden dataset for the customer support email classifier. All labels human-verified, no LLM-generated ground truth.",
+  "cases": [
+    {
+      "id": "bill_001",
+      "input_email": "Hi, I was charged twice for my subscription this month. Can you refund the duplicate charge?",
+      "expected_category": "billing",
+      "expected_summary": "The customer was double-charged for their subscription and wants a refund.",
+      "difficulty": "easy",
+      "notes": "Clear billing intent, single issue."
+    },
+    {
+      "id": "bill_002",
+      "input_email": "My invoice #4482 shows a $50 fee I don't recognize. What is this for?",
+      "expected_category": "billing",
+      "expected_summary": "The customer wants an explanation of an unrecognized fee on their invoice.",
+      "difficulty": "easy",
+      "notes": "Clear billing, specific invoice reference."
+    },
+    {
+      "id": "bill_003",
+      "input_email": "can you cancel my plan and give me a prorated refund for the rest of the month",
+      "expected_category": "billing",
+      "expected_summary": "The customer wants to cancel their plan and receive a prorated refund.",
+      "difficulty": "easy",
+      "notes": "Lowercase, no punctuation, still clear."
+    },
+    {
+      "id": "bill_004",
+      "input_email": "I upgraded to the Pro plan yesterday but I'm still being billed at the old rate. Please fix.",
+      "expected_category": "billing",
+      "expected_summary": "The customer upgraded plans but is still being billed the old rate and wants it corrected.",
+      "difficulty": "medium",
+      "notes": "Billing issue tied to a plan change."
+    },
+    {
+      "id": "bill_005",
+      "input_email": "Do you offer annual billing discounts? Comparing pricing before I commit.",
+      "expected_category": "billing",
+      "expected_summary": "The customer is asking about annual billing discounts before committing to a plan.",
+      "difficulty": "medium",
+      "notes": "Pre-sales but explicitly about pricing -> billing, not general."
+    },
+    {
+      "id": "tech_001",
+      "input_email": "The export to CSV button throws a 500 error every time I click it on the dashboard.",
+      "expected_category": "technical",
+      "expected_summary": "The customer's CSV export is failing with a 500 error on the dashboard.",
+      "difficulty": "easy",
+      "notes": "Clear bug report."
+    },
+    {
+      "id": "tech_002",
+      "input_email": "Our webhook integration stopped receiving events after your last deploy.",
+      "expected_category": "technical",
+      "expected_summary": "The customer's webhook integration stopped receiving events after a recent deploy.",
+      "difficulty": "easy",
+      "notes": "Clear technical/integration issue."
+    },
+    {
+      "id": "tech_003",
+      "input_email": "app keeps crashing when i try to upload a file bigger than 10mb",
+      "expected_category": "technical",
+      "expected_summary": "The app crashes when the customer uploads files larger than 10MB.",
+      "difficulty": "easy",
+      "notes": "Typo-free but casual, still technical."
+    },
+    {
+      "id": "tech_004",
+      "input_email": "Getting 'undefined is not a function' errors in the console after updating to v3.2 of your SDK.",
+      "expected_category": "technical",
+      "expected_summary": "The customer is hitting a JavaScript error after updating to SDK version 3.2.",
+      "difficulty": "medium",
+      "notes": "Developer-facing technical bug, mentions version number."
+    },
+    {
+      "id": "tech_005",
+      "input_email": "teh api is retuning wierd dtaa somtimes for large requests, not consistant",
+      "expected_category": "technical",
+      "expected_summary": "The customer reports the API inconsistently returns unexpected data for large requests.",
+      "difficulty": "hard",
+      "notes": "Heavy typos, tests robustness of classification and summary quality."
+    },
+    {
+      "id": "acct_001",
+      "input_email": "I forgot my password and the reset email never arrives. Can you help?",
+      "expected_category": "account",
+      "expected_summary": "The customer cannot reset their password because the reset email never arrives.",
+      "difficulty": "easy",
+      "notes": "Clear account access issue."
+    },
+    {
+      "id": "acct_002",
+      "input_email": "Need to change the email address linked to my account before I lose access to my old inbox.",
+      "expected_category": "account",
+      "expected_summary": "The customer wants to update the email address linked to their account.",
+      "difficulty": "easy",
+      "notes": "Account settings change."
+    },
+    {
+      "id": "acct_003",
+      "input_email": "my account got locked after too many login attempts, can you unlock it",
+      "expected_category": "account",
+      "expected_summary": "The customer's account was locked after repeated failed login attempts and needs to be unlocked.",
+      "difficulty": "easy",
+      "notes": "Common account lockout scenario."
+    },
+    {
+      "id": "acct_004",
+      "input_email": "I want to add my colleague as a second admin on our workspace.",
+      "expected_category": "account",
+      "expected_summary": "The customer wants to add a colleague as a second admin on their workspace.",
+      "difficulty": "medium",
+      "notes": "Account/permissions management, not billing despite being 'workspace' related."
+    },
+    {
+      "id": "acct_005",
+      "input_email": "two factor auth isnt sending codes to my phone anymore",
+      "expected_category": "account",
+      "expected_summary": "The customer's two-factor authentication codes are no longer being sent to their phone.",
+      "difficulty": "medium",
+      "notes": "Could be mistaken for technical; it's account access."
+    },
+    {
+      "id": "gen_001",
+      "input_email": "Just wanted to say your support team was amazing yesterday, thank you!",
+      "expected_category": "general",
+      "expected_summary": "The customer is thanking the support team for excellent help.",
+      "difficulty": "easy",
+      "notes": "Pure feedback, no action needed."
+    },
+    {
+      "id": "gen_002",
+      "input_email": "Do you have a public roadmap I can follow to see upcoming features?",
+      "expected_category": "general",
+      "expected_summary": "The customer is asking whether a public product roadmap exists.",
+      "difficulty": "easy",
+      "notes": "General product question."
+    },
+    {
+      "id": "gen_003",
+      "input_email": "hey",
+      "expected_category": "general",
+      "expected_summary": "The customer sent a message with no discernible request.",
+      "difficulty": "edge",
+      "notes": "Extremely short, no content. Tests handling of near-empty input."
+    },
+    {
+      "id": "gen_004",
+      "input_email": "Not really a complaint, just curious if you guys are hiring engineers right now.",
+      "expected_category": "general",
+      "expected_summary": "The customer is asking whether the company is currently hiring engineers.",
+      "difficulty": "medium",
+      "notes": "Off-topic but should not be forced into another bucket."
+    },
+    {
+      "id": "gen_005",
+      "input_email": "Interested in an enterprise demo, who do I talk to?",
+      "expected_category": "general",
+      "expected_summary": "The customer wants to be connected with someone for an enterprise demo.",
+      "difficulty": "medium",
+      "notes": "Sales inquiry, tests whether model wrongly routes to billing."
+    },
+    {
+      "id": "edge_001",
+      "input_email": "Great, another update that broke my invoice PDF export. Love this.",
+      "expected_category": "technical",
+      "expected_summary": "The customer's invoice PDF export broke after a recent update.",
+      "difficulty": "edge",
+      "notes": "Sarcastic tone; mentions invoice but the actual issue is a broken export feature (technical, not billing)."
+    },
+    {
+      "id": "edge_002",
+      "input_email": "cant log in AND my card was charged twice, please help asap!!",
+      "expected_category": "account",
+      "expected_summary": "The customer cannot log in and was also double-charged, and needs urgent help.",
+      "difficulty": "edge",
+      "notes": "Two valid categories (account + billing) in one email; ground truth picks account as the primary blocker."
+    },
+    {
+      "id": "edge_003",
+      "input_email": "Mon compte a ete bloque apres la mise a jour, je ne peux plus me connecter.",
+      "expected_category": "account",
+      "expected_summary": "The customer's account was locked after an update and they can no longer log in.",
+      "difficulty": "edge",
+      "notes": "Mixed language / non-English input tests robustness."
+    },
+    {
+      "id": "edge_004",
+      "input_email": "?",
+      "expected_category": "general",
+      "expected_summary": "The customer sent a message with no interpretable content.",
+      "difficulty": "edge",
+      "notes": "Degenerate input, single character."
+    },
+    {
+      "id": "edge_005",
+      "input_email": "billing page wont load, just a blank screen, is this a bug on your end or is my account suspended?",
+      "expected_category": "technical",
+      "expected_summary": "The customer's billing page shows a blank screen and they are unsure if it's a bug or a suspension.",
+      "difficulty": "edge",
+      "notes": "Mentions billing and account but the reported symptom is a page failing to load -> technical."
+    },
+    {
+      "id": "edge_006",
+      "input_email": "u guys suck my refund still isnt here its been 3 weeks this is ridiculous",
+      "expected_category": "billing",
+      "expected_summary": "The customer is frustrated that a refund has not arrived after three weeks.",
+      "difficulty": "edge",
+      "notes": "Hostile tone should not affect classification; tests summary neutrality."
+    },
+    {
+      "id": "edge_007",
+      "input_email": "idk who to email but nothing on this site works right now, everything is broken",
+      "expected_category": "technical",
+      "expected_summary": "The customer reports that the entire site appears to be broken.",
+      "difficulty": "edge",
+      "notes": "Vague scope, no specifics, tests over-generalization in summary."
+    },
+    {
+      "id": "edge_008",
+      "input_email": "Can I get a discount if I refer 3 friends and also why does the app log me out on my iPad specifically?",
+      "expected_category": "account",
+      "expected_summary": "The customer asks about a referral discount and reports being logged out specifically on their iPad.",
+      "difficulty": "edge",
+      "notes": "Two intents (billing + account); ground truth prioritizes the account/session bug as primary."
+    },
+    {
+      "id": "edge_009",
+      "input_email": "asdkjfh",
+      "expected_category": "general",
+      "expected_summary": "The customer sent an unintelligible message.",
+      "difficulty": "edge",
+      "notes": "Gibberish input, tests graceful fallback to general."
+    },
+    {
+      "id": "edge_010",
+      "input_email": "This is the third time I'm emailing about the same login bug you people never fix anything",
+      "expected_category": "technical",
+      "expected_summary": "The customer is repeatedly reporting an unresolved login bug.",
+      "difficulty": "edge",
+      "notes": "Login-related but framed as a recurring bug rather than a one-off account lockout -> technical, not account."
+    }
+  ]
+}

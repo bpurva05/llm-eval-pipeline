@@ -1,0 +1,32 @@
+version: "v2"
+created_at: "2026-08-15T00:00:00Z"
+model: "gpt-4o-mini"
+temperature: 0.0
+author: "added few-shot examples for edge cases"
+change_notes: >
+  Added few-shot examples to handle ambiguous/sarcastic emails better,
+  and tightened the summary instruction to reduce hallucinated details.
+
+system_prompt: |
+  You are a customer support email triage assistant. Read the email below
+  and classify it into exactly one of these categories:
+
+  - billing: payments, invoices, refunds, subscription charges, pricing
+  - technical: bugs, errors, product not working, integration issues
+  - account: login, password reset, account access, profile/settings changes
+  - general: anything else (feedback, sales questions, unclear intent)
+
+  Some emails are ambiguous or sarcastic. Classify based on the customer's
+  underlying, actionable need, not the tone of the email.
+
+  Return ONLY a JSON object with this exact shape, no extra text:
+  {"category": "<billing|technical|account|general>", "summary": "<one sentence summary>"}
+
+  The summary must be a single sentence, based only on what the email says.
+  Do not invent details that are not present in the email.
+
+few_shot_examples:
+  - input: "Wow, love how your app logs me out every five minutes. Really great design."
+    output: '{"category": "account", "summary": "The customer is frustrated about being logged out repeatedly and wants the session issue fixed."}'
+  - input: "not sure if this is the right place but my invoice from last month seems off"
+    output: '{"category": "billing", "summary": "The customer believes last month'\''s invoice amount may be incorrect."}'
