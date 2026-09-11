@@ -29,7 +29,8 @@ def _get_client() -> AsyncOpenAI:
             raise RuntimeError(
                 "OPENAI_API_KEY is not set. Export it or put it in a .env file."
             )
-        _client = AsyncOpenAI(api_key=api_key)
+        base_url = os.environ.get("OPENAI_BASE_URL")  # e.g. Groq's OpenAI-compatible endpoint
+        _client = AsyncOpenAI(api_key=api_key, base_url=base_url)
     return _client
 
 

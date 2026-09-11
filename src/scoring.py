@@ -7,8 +7,10 @@ an LLM-as-judge rubric instead of exact string matching.
 """
 from __future__ import annotations
 
+import asyncio
 import json
 import os
+import re
 from dataclasses import dataclass, field
 
 from openai import AsyncOpenAI
@@ -16,7 +18,7 @@ from openai import AsyncOpenAI
 from .classifier import ClassificationResult
 from .config import GoldenCase
 
-JUDGE_MODEL = os.environ.get("JUDGE_MODEL", "gpt-4o-mini")
+JUDGE_MODEL = os.environ.get("JUDGE_MODEL", "openai/gpt-oss-20b")
 
 JUDGE_SYSTEM_PROMPT = """You are grading a customer-support email summary for accuracy.
 You will be given the original email, a reference (ideal) summary, and a candidate
@@ -51,29 +53,42 @@ class CaseScore:
 
 
 async def judge_summary(email_text: str, reference_summary: str, candidate_summary: str) -> tuple[int, str]:
-    """LLM-as-judge: rate the candidate summary 1-5 against the reference."""
-    client = AsyncOpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
-    try:
-        response = await client.chat.completions.create(
-            model=JUDGE_MODEL,
-            temperature=0.0,
-            response_format={"type": "json_object"},
-            messages=[
-                {"role": "system", "content": JUDGE_SYSTEM_PROMPT},
-                {
-                    "role": "user",
-                    "content": (
-                        f"EMAIL:\n{email_text}\n\n"
-                        f"REFERENCE SUMMARY:\n{reference_summary}\n\n"
-                        f"CANDIDATE SUMMARY:\n{candidate_summary}"
-                    ),
-                },
-            ],
-        )
-        parsed = json.loads(response.choices[0].message.content or "{}")
-        return int(parsed.get("score", 0)), str(parsed.get("reasoning", ""))
-    except Exception as e:
-        return 0, f"judge_error: {e}"
+    """LLM-as-judge: rate the candidate summary 1-5 against the reference, retrying on rate limits."""
+    client = AsyncOpenAI(
+        api_key=os.environ.get("OPENAI_API_KEY"),
+        base_url=os.environ.get("OPENAI_BASE_URL"),
+    )
+    max_retries = 5
+    for attempt in range(max_retries):
+        try:
+            response = await client.chat.completions.create(
+                model=JUDGE_MODEL,
+                temperature=0.0,
+                response_format={"type": "json_object"},
+                messages=[
+                    {"role": "system", "content": JUDGE_SYSTEM_PROMPT},
+                    {
+                        "role": "user",
+                        "content": (
+                            f"EMAIL:\n{email_text}\n\n"
+                            f"REFERENCE SUMMARY:\n{reference_summary}\n\n"
+                            f"CANDIDATE SUMMARY:\n{candidate_summary}"
+                        ),
+                    },
+                ],
+            )
+            parsed = json.loads(response.choices[0].message.content or "{}")
+            return int(parsed.get("score", 0)), str(parsed.get("reasoning", ""))
+        except Exception as e:
+            error_str = str(e)
+            is_rate_limit = "429" in error_str or "rate_limit" in error_str.lower()
+            if is_rate_limit and attempt < max_retries - 1:
+                match = re.search(r"try again in ([\d.]+)s", error_str)
+                wait_seconds = float(match.group(1)) + 0.5 if match else 5.0
+                await asyncio.sleep(wait_seconds)
+                continue
+            return 0, f"judge_error: {error_str}"
+    return 0, "judge_error: max retries exceeded"
 
 
 def score_composite(category_correct: bool, summary_score: int, error: str | None) -> bool:
