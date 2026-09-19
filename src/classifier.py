@@ -9,8 +9,10 @@ everything downstream keeps working.
 """
 from __future__ import annotations
 
+import asyncio
 import json
 import os
+import re
 import time
 from dataclasses import dataclass
 
@@ -19,6 +21,9 @@ from openai import AsyncOpenAI
 from .config import ClassificationOutput, PromptConfig
 
 _client: AsyncOpenAI | None = None
+
+MAX_RETRIES = 8
+DEFAULT_BACKOFF_SECONDS = 8.0
 
 
 def _get_client() -> AsyncOpenAI:
@@ -32,6 +37,14 @@ def _get_client() -> AsyncOpenAI:
         base_url = os.environ.get("OPENAI_BASE_URL")  # e.g. Groq's OpenAI-compatible endpoint
         _client = AsyncOpenAI(api_key=api_key, base_url=base_url)
     return _client
+
+
+def _parse_retry_after(error_message: str) -> float:
+    """Providers like Groq include 'Please try again in 2.445s' in 429 bodies."""
+    match = re.search(r"try again in ([\d.]+)s", error_message)
+    if match:
+        return float(match.group(1)) + 0.5  # small buffer
+    return DEFAULT_BACKOFF_SECONDS
 
 
 @dataclass
@@ -59,25 +72,45 @@ async def classify_email(config: PromptConfig, email_text: str) -> Classificatio
 
     Returns a ClassificationResult even on failure (bad JSON, API error) so
     the eval runner can score "the model returned garbage" as a failure
-    rather than crashing the whole run.
+    rather than crashing the whole run. Rate limit (429) errors are retried
+    with backoff rather than counted as a failure immediately, since a
+    provider-side rate limit is not a signal about prompt quality.
     """
     client = _get_client()
     messages = _build_messages(config, email_text)
 
     start = time.perf_counter()
-    try:
-        response = await client.chat.completions.create(
-            model=config.model,
-            temperature=config.temperature,
-            messages=messages,
-            response_format={"type": "json_object"},
-        )
-    except Exception as e:  # network / API errors count as a failed case, not a crash
+    last_error: str | None = None
+
+    for attempt in range(MAX_RETRIES):
+        try:
+            response = await client.chat.completions.create(
+                model=config.model,
+                temperature=config.temperature,
+                messages=messages,
+                response_format={"type": "json_object"},
+            )
+            break
+        except Exception as e:
+            error_str = str(e)
+            last_error = error_str
+            is_rate_limit = "429" in error_str or "rate_limit" in error_str.lower()
+            if is_rate_limit and attempt < MAX_RETRIES - 1:
+                wait_seconds = _parse_retry_after(error_str)
+                await asyncio.sleep(wait_seconds)
+                continue
+            latency_ms = (time.perf_counter() - start) * 1000
+            return ClassificationResult(
+                output=None, raw_text="", latency_ms=latency_ms,
+                prompt_tokens=0, completion_tokens=0, error=error_str,
+            )
+    else:
         latency_ms = (time.perf_counter() - start) * 1000
         return ClassificationResult(
             output=None, raw_text="", latency_ms=latency_ms,
-            prompt_tokens=0, completion_tokens=0, error=str(e),
+            prompt_tokens=0, completion_tokens=0, error=last_error,
         )
+
     latency_ms = (time.perf_counter() - start) * 1000
 
     raw_text = response.choices[0].message.content or ""
