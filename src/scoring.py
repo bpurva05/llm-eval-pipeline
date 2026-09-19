@@ -58,7 +58,7 @@ async def judge_summary(email_text: str, reference_summary: str, candidate_summa
         api_key=os.environ.get("OPENAI_API_KEY"),
         base_url=os.environ.get("OPENAI_BASE_URL"),
     )
-    max_retries = 5
+    max_retries = 8
     for attempt in range(max_retries):
         try:
             response = await client.chat.completions.create(

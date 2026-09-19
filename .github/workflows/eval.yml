@@ -54,12 +54,14 @@ jobs:
         id: run_eval
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          OPENAI_BASE_URL: https://api.groq.com/openai/v1
+          JUDGE_MODEL: openai/gpt-oss-20b
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
         run: |
           if [ -n "${{ steps.prompt.outputs.version }}" ]; then
-            python run_eval.py --prompt-version ${{ steps.prompt.outputs.version }}
+            python run_eval.py --prompt-version ${{ steps.prompt.outputs.version }} --concurrency 2
           else
-            python run_eval.py
+            python run_eval.py --concurrency 2
           fi
 
       - name: Upload HTML report artifact
@@ -82,8 +84,7 @@ jobs:
         with:
           script: |
             const fs = require('fs');
-            const glob = require('glob');
-            const files = glob.sync('reports/*.html');
+            const files = fs.existsSync('reports') ? fs.readdirSync('reports').filter(f => f.endsWith('.html')) : [];
             const latest = files.sort().pop();
             const body = latest
               ? `🧪 **Eval pipeline ran.** See the \`eval-report\` artifact for the full diff report (regressions, per-category accuracy, trend chart).`
