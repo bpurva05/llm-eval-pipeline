@@ -10,15 +10,15 @@ from __future__ import annotations
 import asyncio
 import json
 import os
-import re
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 
 from openai import AsyncOpenAI
 
-from .classifier import ClassificationResult
+from .classifier import ClassificationResult, retry_delay
 from .config import GoldenCase
 
 JUDGE_MODEL = os.environ.get("JUDGE_MODEL", "openai/gpt-oss-20b")
+JUDGE_MAX_RETRIES = 8
 
 JUDGE_SYSTEM_PROMPT = """You are grading a customer-support email summary for accuracy.
 You will be given the original email, a reference (ideal) summary, and a candidate
@@ -53,13 +53,13 @@ class CaseScore:
 
 
 async def judge_summary(email_text: str, reference_summary: str, candidate_summary: str) -> tuple[int, str]:
-    """LLM-as-judge: rate the candidate summary 1-5 against the reference, retrying on rate limits."""
+    """LLM-as-judge: rate the candidate summary 1-5, retrying transient provider errors."""
     client = AsyncOpenAI(
         api_key=os.environ.get("OPENAI_API_KEY"),
         base_url=os.environ.get("OPENAI_BASE_URL"),
     )
-    max_retries = 8
-    for attempt in range(max_retries):
+    last_error = "unknown"
+    for attempt in range(JUDGE_MAX_RETRIES):
         try:
             response = await client.chat.completions.create(
                 model=JUDGE_MODEL,
@@ -80,15 +80,13 @@ async def judge_summary(email_text: str, reference_summary: str, candidate_summa
             parsed = json.loads(response.choices[0].message.content or "{}")
             return int(parsed.get("score", 0)), str(parsed.get("reasoning", ""))
         except Exception as e:
-            error_str = str(e)
-            is_rate_limit = "429" in error_str or "rate_limit" in error_str.lower()
-            if is_rate_limit and attempt < max_retries - 1:
-                match = re.search(r"try again in ([\d.]+)s", error_str)
-                wait_seconds = float(match.group(1)) + 0.5 if match else 5.0
-                await asyncio.sleep(wait_seconds)
+            last_error = str(e)
+            delay = retry_delay(last_error)
+            if delay is not None and attempt < JUDGE_MAX_RETRIES - 1:
+                await asyncio.sleep(delay)
                 continue
-            return 0, f"judge_error: {error_str}"
-    return 0, "judge_error: max retries exceeded"
+            break
+    return 0, f"judge_error: {last_error}"
 
 
 def score_composite(category_correct: bool, summary_score: int, error: str | None) -> bool:

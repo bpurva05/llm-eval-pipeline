@@ -3,9 +3,9 @@
 Main CLI entry point. This is what CI (and you, locally) invoke.
 
 Usage:
-    python run_eval.py --prompt-version v2
-    python run_eval.py --prompt-version v2 --no-slack
-    python run_eval.py --prompt-version v2 --warning-threshold 0.05 --critical-threshold 0.10
+    python run_eval.py --prompt-version v3
+    python run_eval.py --prompt-version v3 --no-slack
+    python run_eval.py --report-url https://github.com/<owner>/<repo>/actions/runs/<id>
 
 Exit codes:
     0 = ok or warning (does not block merge)
@@ -34,14 +34,31 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--prompt-version",
         default=os.environ.get("PROMPT_VERSION"),
-        help="e.g. v2. Defaults to the $PROMPT_VERSION env var, then the latest prompt file.",
+        help="e.g. v3. Defaults to the $PROMPT_VERSION env var, then the latest prompt file.",
     )
     parser.add_argument("--concurrency", type=int, default=8)
     parser.add_argument("--no-slack", action="store_true", help="Skip Slack notification even if webhook is configured.")
     parser.add_argument("--warning-threshold", type=float, default=0.03)
     parser.add_argument("--critical-threshold", type=float, default=0.08)
-    parser.add_argument("--report-url-base", default=None, help="Public base URL where the HTML report will be hosted (for Slack link).")
+    parser.add_argument(
+        "--report-url",
+        default=None,
+        help="Exact URL to link from the Slack alert (e.g. the CI run page that hosts the report artifact).",
+    )
+    parser.add_argument(
+        "--report-url-base",
+        default=None,
+        help="Base URL where HTML reports are hosted; the report filename is appended.",
+    )
     return parser.parse_args()
+
+
+def resolve_report_url(args: argparse.Namespace, report_path) -> str:
+    if args.report_url:
+        return args.report_url
+    if args.report_url_base:
+        return f"{args.report_url_base.rstrip('/')}/{report_path.name}"
+    return str(report_path)
 
 
 async def main() -> int:
@@ -71,11 +88,12 @@ async def main() -> int:
     html = render_report(run, diff, drift=drift, trend_runs=trend_runs)
     write_report(html, report_path)
 
-    report_url = f"{args.report_url_base.rstrip('/')}/{report_path.name}" if args.report_url_base else str(report_path)
+    report_url = resolve_report_url(args, report_path)
 
     print(f"\n{'='*60}")
     print(f"Run ID:        {run.run_id}")
     print(f"Prompt:        {run.prompt_version}  Model: {run.model}")
+    print(f"Dataset:       {run.dataset_version}")
     print(f"Pass rate:     {run.overall_pass_rate:.1%}"
           + ("" if diff.is_first_run else f"  ({diff.pass_rate_delta:+.1%} vs. baseline)"))
     print(f"Avg summary:   {run.avg_summary_score:.2f}/5")
