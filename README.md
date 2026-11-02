@@ -164,3 +164,28 @@ after every eval, not just on the current-vs-baseline pair.
   not a proper significance test (e.g. McNemar's test for paired binary
   outcomes). That's a reasonable next iteration if this dataset grows large
   enough for it to matter.
+
+## Data sources
+
+`golden_dataset/dataset_v2.json` combines two sources:
+
+- **30 hand-written cases** (`bill_*`, `tech_*`, `acct_*`, `gen_*`, `edge_*`), written and labeled by hand.
+- **27 real customer messages** (`real_*`) from the
+  [Customer Support on Twitter](https://www.kaggle.com/datasets/thoughtvector/customer-support-on-twitter)
+  dataset (Thought Vector), via the Hugging Face mirror
+  `MohammadOthman/mo-customer-support-tweets-945k`. Licensed
+  [CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/).
+  Message text is kept verbatim, including cleaning artifacts from the source
+  (e.g. "eort" for "export"). Categories and reference summaries were assigned
+  and reviewed by hand.
+
+## Results on dataset v2 (prompt v3, 57 cases)
+
+- Pass rate: 89.5% locally, 93.0% in CI (run-to-run variance from the model).
+- Most failures were account or billing messages classified as **technical**,
+  e.g. 2FA codes not arriving and in-game purchases not delivered. v3's
+  "recurring bugs are technical" rule fixed one boundary case but pushed the
+  boundary too far. Real data surfaced this; the hand-written cases did not.
+- One failure was a provider-side `json_validate_failed` error, which the
+  pipeline does not yet retry.
+- CI posts every run to Slack via an incoming webhook.
