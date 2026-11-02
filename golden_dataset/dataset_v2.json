@@ -1,0 +1,466 @@
+{
+  "dataset_version": "v2",
+  "created_at": "2026-09-26T00:00:00Z",
+  "description": "v1's 30 hand-written cases plus 27 real customer messages from the Customer Support on Twitter dataset. All labels human-reviewed; no LLM-assigned ground truth.",
+  "sources": {
+    "real_*": "Customer Support on Twitter (Thought Vector, Kaggle), via Hugging Face mirror MohammadOthman/mo-customer-support-tweets-945k. License: CC BY-NC-SA 4.0 (non-commercial, attribution, share-alike)."
+  },
+  "cases": [
+    {
+      "id": "bill_001",
+      "input_email": "Hi, I was charged twice for my subscription this month. Can you refund the duplicate charge?",
+      "expected_category": "billing",
+      "expected_summary": "The customer was double-charged for their subscription and wants a refund.",
+      "difficulty": "easy",
+      "notes": "Clear billing intent, single issue."
+    },
+    {
+      "id": "bill_002",
+      "input_email": "My invoice #4482 shows a $50 fee I don't recognize. What is this for?",
+      "expected_category": "billing",
+      "expected_summary": "The customer wants an explanation of an unrecognized fee on their invoice.",
+      "difficulty": "easy",
+      "notes": "Clear billing, specific invoice reference."
+    },
+    {
+      "id": "bill_003",
+      "input_email": "can you cancel my plan and give me a prorated refund for the rest of the month",
+      "expected_category": "billing",
+      "expected_summary": "The customer wants to cancel their plan and receive a prorated refund.",
+      "difficulty": "easy",
+      "notes": "Lowercase, no punctuation, still clear."
+    },
+    {
+      "id": "bill_004",
+      "input_email": "I upgraded to the Pro plan yesterday but I'm still being billed at the old rate. Please fix.",
+      "expected_category": "billing",
+      "expected_summary": "The customer upgraded plans but is still being billed the old rate and wants it corrected.",
+      "difficulty": "medium",
+      "notes": "Billing issue tied to a plan change."
+    },
+    {
+      "id": "bill_005",
+      "input_email": "Do you offer annual billing discounts? Comparing pricing before I commit.",
+      "expected_category": "billing",
+      "expected_summary": "The customer is asking about annual billing discounts before committing to a plan.",
+      "difficulty": "medium",
+      "notes": "Pre-sales but explicitly about pricing -> billing, not general."
+    },
+    {
+      "id": "tech_001",
+      "input_email": "The export to CSV button throws a 500 error every time I click it on the dashboard.",
+      "expected_category": "technical",
+      "expected_summary": "The customer's CSV export is failing with a 500 error on the dashboard.",
+      "difficulty": "easy",
+      "notes": "Clear bug report."
+    },
+    {
+      "id": "tech_002",
+      "input_email": "Our webhook integration stopped receiving events after your last deploy.",
+      "expected_category": "technical",
+      "expected_summary": "The customer's webhook integration stopped receiving events after a recent deploy.",
+      "difficulty": "easy",
+      "notes": "Clear technical/integration issue."
+    },
+    {
+      "id": "tech_003",
+      "input_email": "app keeps crashing when i try to upload a file bigger than 10mb",
+      "expected_category": "technical",
+      "expected_summary": "The app crashes when the customer uploads files larger than 10MB.",
+      "difficulty": "easy",
+      "notes": "Casual phrasing, still technical."
+    },
+    {
+      "id": "tech_004",
+      "input_email": "Getting 'undefined is not a function' errors in the console after updating to v3.2 of your SDK.",
+      "expected_category": "technical",
+      "expected_summary": "The customer is hitting a JavaScript error after updating to SDK version 3.2.",
+      "difficulty": "medium",
+      "notes": "Developer-facing technical bug, mentions version number."
+    },
+    {
+      "id": "tech_005",
+      "input_email": "teh api is retuning wierd dtaa somtimes for large requests, not consistant",
+      "expected_category": "technical",
+      "expected_summary": "The customer reports the API inconsistently returns unexpected data for large requests.",
+      "difficulty": "hard",
+      "notes": "Heavy typos, tests robustness of classification and summary quality."
+    },
+    {
+      "id": "acct_001",
+      "input_email": "I forgot my password and the reset email never arrives. Can you help?",
+      "expected_category": "account",
+      "expected_summary": "The customer cannot reset their password because the reset email never arrives.",
+      "difficulty": "easy",
+      "notes": "Clear account access issue."
+    },
+    {
+      "id": "acct_002",
+      "input_email": "Need to change the email address linked to my account before I lose access to my old inbox.",
+      "expected_category": "account",
+      "expected_summary": "The customer wants to update the email address linked to their account.",
+      "difficulty": "easy",
+      "notes": "Account settings change."
+    },
+    {
+      "id": "acct_003",
+      "input_email": "my account got locked after too many login attempts, can you unlock it",
+      "expected_category": "account",
+      "expected_summary": "The customer's account was locked after repeated failed login attempts and needs to be unlocked.",
+      "difficulty": "easy",
+      "notes": "Common account lockout scenario."
+    },
+    {
+      "id": "acct_004",
+      "input_email": "I want to add my colleague as a second admin on our workspace.",
+      "expected_category": "account",
+      "expected_summary": "The customer wants to add a colleague as a second admin on their workspace.",
+      "difficulty": "medium",
+      "notes": "Account/permissions management."
+    },
+    {
+      "id": "acct_005",
+      "input_email": "two factor auth isnt sending codes to my phone anymore",
+      "expected_category": "account",
+      "expected_summary": "The customer's two-factor authentication codes are no longer being sent to their phone.",
+      "difficulty": "medium",
+      "notes": "Could be mistaken for technical; it's account access."
+    },
+    {
+      "id": "gen_001",
+      "input_email": "Just wanted to say your support team was amazing yesterday, thank you!",
+      "expected_category": "general",
+      "expected_summary": "The customer is thanking the support team for excellent help.",
+      "difficulty": "easy",
+      "notes": "Pure feedback, no action needed."
+    },
+    {
+      "id": "gen_002",
+      "input_email": "Do you have a public roadmap I can follow to see upcoming features?",
+      "expected_category": "general",
+      "expected_summary": "The customer is asking whether a public product roadmap exists.",
+      "difficulty": "easy",
+      "notes": "General product question."
+    },
+    {
+      "id": "gen_003",
+      "input_email": "hey",
+      "expected_category": "general",
+      "expected_summary": "The customer sent a message with no discernible request.",
+      "difficulty": "edge",
+      "notes": "Extremely short, no content."
+    },
+    {
+      "id": "gen_004",
+      "input_email": "Not really a complaint, just curious if you guys are hiring engineers right now.",
+      "expected_category": "general",
+      "expected_summary": "The customer is asking whether the company is currently hiring engineers.",
+      "difficulty": "medium",
+      "notes": "Off-topic but should not be forced into another bucket."
+    },
+    {
+      "id": "gen_005",
+      "input_email": "Interested in an enterprise demo, who do I talk to?",
+      "expected_category": "general",
+      "expected_summary": "The customer wants to be connected with someone for an enterprise demo.",
+      "difficulty": "medium",
+      "notes": "Sales inquiry, tests whether model wrongly routes to billing."
+    },
+    {
+      "id": "edge_001",
+      "input_email": "Great, another update that broke my invoice PDF export. Love this.",
+      "expected_category": "technical",
+      "expected_summary": "The customer's invoice PDF export broke after a recent update.",
+      "difficulty": "edge",
+      "notes": "Sarcastic; mentions invoice but the issue is a broken export feature."
+    },
+    {
+      "id": "edge_002",
+      "input_email": "cant log in AND my card was charged twice, please help asap!!",
+      "expected_category": "account",
+      "expected_summary": "The customer cannot log in and was also double-charged, and needs urgent help.",
+      "difficulty": "edge",
+      "notes": "Dual intent; account chosen as the primary blocker."
+    },
+    {
+      "id": "edge_003",
+      "input_email": "Mon compte a ete bloque apres la mise a jour, je ne peux plus me connecter.",
+      "expected_category": "account",
+      "expected_summary": "The customer's account was locked after an update and they can no longer log in.",
+      "difficulty": "edge",
+      "notes": "Non-English input tests robustness."
+    },
+    {
+      "id": "edge_004",
+      "input_email": "?",
+      "expected_category": "general",
+      "expected_summary": "The customer sent a message with no interpretable content.",
+      "difficulty": "edge",
+      "notes": "Degenerate input, single character."
+    },
+    {
+      "id": "edge_005",
+      "input_email": "billing page wont load, just a blank screen, is this a bug on your end or is my account suspended?",
+      "expected_category": "technical",
+      "expected_summary": "The customer's billing page shows a blank screen and they are unsure if it's a bug or a suspension.",
+      "difficulty": "edge",
+      "notes": "Mentions billing and account but the symptom is a page failing to load."
+    },
+    {
+      "id": "edge_006",
+      "input_email": "u guys suck my refund still isnt here its been 3 weeks this is ridiculous",
+      "expected_category": "billing",
+      "expected_summary": "The customer is frustrated that a refund has not arrived after three weeks.",
+      "difficulty": "edge",
+      "notes": "Hostile tone should not affect classification."
+    },
+    {
+      "id": "edge_007",
+      "input_email": "idk who to email but nothing on this site works right now, everything is broken",
+      "expected_category": "technical",
+      "expected_summary": "The customer reports that the entire site appears to be broken.",
+      "difficulty": "edge",
+      "notes": "Vague scope, tests over-generalization in summary."
+    },
+    {
+      "id": "edge_008",
+      "input_email": "Can I get a discount if I refer 3 friends and also why does the app log me out on my iPad specifically?",
+      "expected_category": "account",
+      "expected_summary": "The customer asks about a referral discount and reports being logged out specifically on their iPad.",
+      "difficulty": "edge",
+      "notes": "Two intents; account/session issue treated as primary."
+    },
+    {
+      "id": "edge_009",
+      "input_email": "asdkjfh",
+      "expected_category": "general",
+      "expected_summary": "The customer sent an unintelligible message.",
+      "difficulty": "edge",
+      "notes": "Gibberish input, tests graceful fallback."
+    },
+    {
+      "id": "edge_010",
+      "input_email": "This is the third time I'm emailing about the same login bug you people never fix anything",
+      "expected_category": "technical",
+      "expected_summary": "The customer is repeatedly reporting an unresolved login bug.",
+      "difficulty": "edge",
+      "notes": "Recurring bug rather than one-off lockout -> technical."
+    },
+    {
+      "id": "real_001",
+      "input_email": "Please tell me why my has eired, but I’m still being charged????",
+      "expected_category": "billing",
+      "expected_summary": "The customer's subscription has expired but they are still being charged.",
+      "difficulty": "medium",
+      "notes": "'eired' = expired (source artifact). Source: Real customer message from the Customer Support on Twitter dataset (Thought Vector / Kaggle; HF mirror MohammadOthman/mo-customer-support-tweets-945k, CC BY-NC-SA 4.0). Text verbatim, including the source's cleaning artifacts."
+    },
+    {
+      "id": "real_002",
+      "input_email": "redeemed a code for fifa points this afternoon and still have not got it. Why is this?",
+      "expected_category": "billing",
+      "expected_summary": "The customer redeemed a code for in-game points but has not received them.",
+      "difficulty": "edge",
+      "notes": "Paid-but-not-received; no error mentioned, so billing over technical. Source: Real customer message from the Customer Support on Twitter dataset (Thought Vector / Kaggle; HF mirror MohammadOthman/mo-customer-support-tweets-945k, CC BY-NC-SA 4.0). Text verbatim, including the source's cleaning artifacts."
+    },
+    {
+      "id": "real_003",
+      "input_email": "hi, having trouble making purchases on Xbox one store for fifa points, can you help?",
+      "expected_category": "billing",
+      "expected_summary": "The customer is having trouble making purchases in the Xbox One store.",
+      "difficulty": "medium",
+      "notes": "Purchase/payment trouble; could be read as technical. Source: Real customer message from the Customer Support on Twitter dataset (Thought Vector / Kaggle; HF mirror MohammadOthman/mo-customer-support-tweets-945k, CC BY-NC-SA 4.0). Text verbatim, including the source's cleaning artifacts."
+    },
+    {
+      "id": "real_004",
+      "input_email": "Misrepresentation by host. Asked them to cancel my reservation and refund me over AUD1700 strict policy. No response. Please help.",
+      "expected_category": "billing",
+      "expected_summary": "The customer wants a refund of over AUD1700 for a misrepresented reservation and has had no response.",
+      "difficulty": "medium",
+      "notes": "Refund request wrapped in a complaint. Source: Real customer message from the Customer Support on Twitter dataset (Thought Vector / Kaggle; HF mirror MohammadOthman/mo-customer-support-tweets-945k, CC BY-NC-SA 4.0). Text verbatim, including the source's cleaning artifacts."
+    },
+    {
+      "id": "real_005",
+      "input_email": "Why are you not refunding my trip to Bali for Volcano eruption!!! Urgently refund!!",
+      "expected_category": "billing",
+      "expected_summary": "The customer is demanding an urgent refund for a Bali trip affected by a volcano eruption.",
+      "difficulty": "easy",
+      "notes": "Clear refund demand, angry tone. Source: Real customer message from the Customer Support on Twitter dataset (Thought Vector / Kaggle; HF mirror MohammadOthman/mo-customer-support-tweets-945k, CC BY-NC-SA 4.0). Text verbatim, including the source's cleaning artifacts."
+    },
+    {
+      "id": "real_006",
+      "input_email": "3 for £6, unless one is reduced hidden label on the side! then it’s 3 for £6.14. Don’t care about the 14p but feel ripped off!",
+      "expected_category": "billing",
+      "expected_summary": "The customer feels overcharged because a hidden label changed a multi-buy price from £6 to £6.14.",
+      "difficulty": "edge",
+      "notes": "Pricing complaint in retail context; small amount, strong sentiment. Source: Real customer message from the Customer Support on Twitter dataset (Thought Vector / Kaggle; HF mirror MohammadOthman/mo-customer-support-tweets-945k, CC BY-NC-SA 4.0). Text verbatim, including the source's cleaning artifacts."
+    },
+    {
+      "id": "real_007",
+      "input_email": "fix your app it will not even open",
+      "expected_category": "technical",
+      "expected_summary": "The customer's app will not open.",
+      "difficulty": "easy",
+      "notes": "Short, clear bug report. Source: Real customer message from the Customer Support on Twitter dataset (Thought Vector / Kaggle; HF mirror MohammadOthman/mo-customer-support-tweets-945k, CC BY-NC-SA 4.0). Text verbatim, including the source's cleaning artifacts."
+    },
+    {
+      "id": "real_008",
+      "input_email": "I bought Lego Star Wars in the PlayStation store but it will not let me download it because the data is corrupted..",
+      "expected_category": "technical",
+      "expected_summary": "The customer bought a game but cannot download it due to a corrupted data error.",
+      "difficulty": "edge",
+      "notes": "Purchase mentioned, but the blocker is a named download error -> technical. Source: Real customer message from the Customer Support on Twitter dataset (Thought Vector / Kaggle; HF mirror MohammadOthman/mo-customer-support-tweets-945k, CC BY-NC-SA 4.0). Text verbatim, including the source's cleaning artifacts."
+    },
+    {
+      "id": "real_009",
+      "input_email": "the 5 app on Xboxes not working error code 200, done a power cycle and still the same? Please fix app",
+      "expected_category": "technical",
+      "expected_summary": "An app on the customer's Xbox fails with error code 200 even after a power cycle.",
+      "difficulty": "easy",
+      "notes": "Error code plus troubleshooting already attempted. Source: Real customer message from the Customer Support on Twitter dataset (Thought Vector / Kaggle; HF mirror MohammadOthman/mo-customer-support-tweets-945k, CC BY-NC-SA 4.0). Text verbatim, including the source's cleaning artifacts."
+    },
+    {
+      "id": "real_010",
+      "input_email": "InDesign 13.0 is eorting all PDFs with blurry links, but links are not missing in INDD file. JPG eort is not blurry. Help!",
+      "expected_category": "technical",
+      "expected_summary": "InDesign 13.0 exports PDFs with blurry linked images, though JPG exports are fine.",
+      "difficulty": "hard",
+      "notes": "'eort' = export (source artifact); detailed, domain-specific bug. Source: Real customer message from the Customer Support on Twitter dataset (Thought Vector / Kaggle; HF mirror MohammadOthman/mo-customer-support-tweets-945k, CC BY-NC-SA 4.0). Text verbatim, including the source's cleaning artifacts."
+    },
+    {
+      "id": "real_011",
+      "input_email": "whats going on with your app. its totally stuck here for 1 hour and prior to updating froze and didnt work since updating.",
+      "expected_category": "technical",
+      "expected_summary": "The customer's app has been stuck for an hour and has not worked since updating.",
+      "difficulty": "medium",
+      "notes": "Post-update failure. Source: Real customer message from the Customer Support on Twitter dataset (Thought Vector / Kaggle; HF mirror MohammadOthman/mo-customer-support-tweets-945k, CC BY-NC-SA 4.0). Text verbatim, including the source's cleaning artifacts."
+    },
+    {
+      "id": "real_012",
+      "input_email": "So apparently the new version of has this cool feature where you cannot eort SVGs. Sick update guys.",
+      "expected_category": "technical",
+      "expected_summary": "The customer reports that the new version can no longer export SVGs.",
+      "difficulty": "edge",
+      "notes": "Sarcasm; product name stripped by source cleaning. Source: Real customer message from the Customer Support on Twitter dataset (Thought Vector / Kaggle; HF mirror MohammadOthman/mo-customer-support-tweets-945k, CC BY-NC-SA 4.0). Text verbatim, including the source's cleaning artifacts."
+    },
+    {
+      "id": "real_013",
+      "input_email": "Cuts out every 20 minutes this is ridiculous",
+      "expected_category": "technical",
+      "expected_summary": "The customer's service cuts out every 20 minutes.",
+      "difficulty": "medium",
+      "notes": "No product named; context-free outage report. Source: Real customer message from the Customer Support on Twitter dataset (Thought Vector / Kaggle; HF mirror MohammadOthman/mo-customer-support-tweets-945k, CC BY-NC-SA 4.0). Text verbatim, including the source's cleaning artifacts."
+    },
+    {
+      "id": "real_014",
+      "input_email": "y’all lie about your “great” connection. 5 bars LTE, still won’t load something. Smh.",
+      "expected_category": "technical",
+      "expected_summary": "The customer has full LTE signal but content still won't load.",
+      "difficulty": "edge",
+      "notes": "Sarcastic complaint containing a real connectivity issue. Source: Real customer message from the Customer Support on Twitter dataset (Thought Vector / Kaggle; HF mirror MohammadOthman/mo-customer-support-tweets-945k, CC BY-NC-SA 4.0). Text verbatim, including the source's cleaning artifacts."
+    },
+    {
+      "id": "real_015",
+      "input_email": "your online forum is always broken even when I clear my cookies.",
+      "expected_category": "technical",
+      "expected_summary": "The customer reports the online forum is always broken even after clearing cookies.",
+      "difficulty": "easy",
+      "notes": "Clear bug with troubleshooting attempted. Source: Real customer message from the Customer Support on Twitter dataset (Thought Vector / Kaggle; HF mirror MohammadOthman/mo-customer-support-tweets-945k, CC BY-NC-SA 4.0). Text verbatim, including the source's cleaning artifacts."
+    },
+    {
+      "id": "real_016",
+      "input_email": "amazonのfireTVstickが見れない",
+      "expected_category": "technical",
+      "expected_summary": "The customer cannot watch content on their Amazon Fire TV Stick.",
+      "difficulty": "edge",
+      "notes": "Japanese-language input; tests multilingual robustness. Source: Real customer message from the Customer Support on Twitter dataset (Thought Vector / Kaggle; HF mirror MohammadOthman/mo-customer-support-tweets-945k, CC BY-NC-SA 4.0). Text verbatim, including the source's cleaning artifacts."
+    },
+    {
+      "id": "real_017",
+      "input_email": "I need assistance recovering 2 hotmail accounts. I have filled the recovery forms but am told am not providing enough info",
+      "expected_category": "account",
+      "expected_summary": "The customer cannot recover two Hotmail accounts because the recovery forms say they lack enough information.",
+      "difficulty": "easy",
+      "notes": "Account recovery. Source: Real customer message from the Customer Support on Twitter dataset (Thought Vector / Kaggle; HF mirror MohammadOthman/mo-customer-support-tweets-945k, CC BY-NC-SA 4.0). Text verbatim, including the source's cleaning artifacts."
+    },
+    {
+      "id": "real_018",
+      "input_email": "can I change me sons Xbox live account to his Hotmail account, currently linked to my Hotmail account",
+      "expected_category": "account",
+      "expected_summary": "The customer wants to move their son's Xbox Live account from the parent's Hotmail address to the son's own.",
+      "difficulty": "medium",
+      "notes": "Account linkage change. Source: Real customer message from the Customer Support on Twitter dataset (Thought Vector / Kaggle; HF mirror MohammadOthman/mo-customer-support-tweets-945k, CC BY-NC-SA 4.0). Text verbatim, including the source's cleaning artifacts."
+    },
+    {
+      "id": "real_019",
+      "input_email": "What else can I provide? They refuse to help me because they cannot validate the account...",
+      "expected_category": "account",
+      "expected_summary": "The customer cannot get help because their account cannot be validated.",
+      "difficulty": "edge",
+      "notes": "Mid-conversation message; limited context. Source: Real customer message from the Customer Support on Twitter dataset (Thought Vector / Kaggle; HF mirror MohammadOthman/mo-customer-support-tweets-945k, CC BY-NC-SA 4.0). Text verbatim, including the source's cleaning artifacts."
+    },
+    {
+      "id": "real_020",
+      "input_email": "How? I have my phone number and email, that is it. How did I get equipment and service? I am literally trying to pay and nobody can find me?",
+      "expected_category": "account",
+      "expected_summary": "The customer is trying to pay but support cannot locate their account.",
+      "difficulty": "edge",
+      "notes": "Mentions paying, but the blocker is account lookup -> account. Source: Real customer message from the Customer Support on Twitter dataset (Thought Vector / Kaggle; HF mirror MohammadOthman/mo-customer-support-tweets-945k, CC BY-NC-SA 4.0). Text verbatim, including the source's cleaning artifacts."
+    },
+    {
+      "id": "real_021",
+      "input_email": "can i block a community from sending me invites to something i dont want to join",
+      "expected_category": "account",
+      "expected_summary": "The customer wants to block a community from sending them invites.",
+      "difficulty": "medium",
+      "notes": "Account/privacy settings request. Source: Real customer message from the Customer Support on Twitter dataset (Thought Vector / Kaggle; HF mirror MohammadOthman/mo-customer-support-tweets-945k, CC BY-NC-SA 4.0). Text verbatim, including the source's cleaning artifacts."
+    },
+    {
+      "id": "real_022",
+      "input_email": "Did You release an update today for Lightroom Classic CC?",
+      "expected_category": "general",
+      "expected_summary": "The customer is asking whether a Lightroom Classic CC update was released today.",
+      "difficulty": "easy",
+      "notes": "Informational question, no problem reported. Source: Real customer message from the Customer Support on Twitter dataset (Thought Vector / Kaggle; HF mirror MohammadOthman/mo-customer-support-tweets-945k, CC BY-NC-SA 4.0). Text verbatim, including the source's cleaning artifacts."
+    },
+    {
+      "id": "real_023",
+      "input_email": "are there any plans to add a fast crop mode for the iPad version of LR? It takes too many taps and slows down workflow.",
+      "expected_category": "general",
+      "expected_summary": "The customer is requesting a faster crop mode for the iPad version of Lightroom.",
+      "difficulty": "medium",
+      "notes": "Feature request; mild friction but not a bug. Source: Real customer message from the Customer Support on Twitter dataset (Thought Vector / Kaggle; HF mirror MohammadOthman/mo-customer-support-tweets-945k, CC BY-NC-SA 4.0). Text verbatim, including the source's cleaning artifacts."
+    },
+    {
+      "id": "real_024",
+      "input_email": "can you still pre oder ww2 on the playstation store",
+      "expected_category": "general",
+      "expected_summary": "The customer is asking whether WWII can still be pre-ordered on the PlayStation Store.",
+      "difficulty": "medium",
+      "notes": "Pre-sale availability question. Source: Real customer message from the Customer Support on Twitter dataset (Thought Vector / Kaggle; HF mirror MohammadOthman/mo-customer-support-tweets-945k, CC BY-NC-SA 4.0). Text verbatim, including the source's cleaning artifacts."
+    },
+    {
+      "id": "real_025",
+      "input_email": "I had excellent service tonight too! Plenty of people on the line, went very fast, everyone was kind!",
+      "expected_category": "general",
+      "expected_summary": "The customer is praising the fast, friendly service they received.",
+      "difficulty": "easy",
+      "notes": "Positive feedback. Source: Real customer message from the Customer Support on Twitter dataset (Thought Vector / Kaggle; HF mirror MohammadOthman/mo-customer-support-tweets-945k, CC BY-NC-SA 4.0). Text verbatim, including the source's cleaning artifacts."
+    },
+    {
+      "id": "real_026",
+      "input_email": "Thought Amex values their customers. But boy you got really bad reps on the customer service.",
+      "expected_category": "general",
+      "expected_summary": "The customer is complaining about poor customer service representatives.",
+      "difficulty": "edge",
+      "notes": "Angry but no actionable request. Source: Real customer message from the Customer Support on Twitter dataset (Thought Vector / Kaggle; HF mirror MohammadOthman/mo-customer-support-tweets-945k, CC BY-NC-SA 4.0). Text verbatim, including the source's cleaning artifacts."
+    },
+    {
+      "id": "real_027",
+      "input_email": "is the worst customer service",
+      "expected_category": "general",
+      "expected_summary": "The customer is complaining that the customer service is the worst.",
+      "difficulty": "edge",
+      "notes": "Fragment with company mention stripped; no actionable request. Source: Real customer message from the Customer Support on Twitter dataset (Thought Vector / Kaggle; HF mirror MohammadOthman/mo-customer-support-tweets-945k, CC BY-NC-SA 4.0). Text verbatim, including the source's cleaning artifacts."
+    }
+  ]
+}
