@@ -2,10 +2,8 @@
 Phase 1: the actual LLM-powered feature being evaluated.
 
 This is intentionally a single, small, swappable function. The eval pipeline
-in Phases 3-5 doesn't know or care that this calls OpenAI -- it only knows
+in Phases 3-5 doesn't know or care which provider this calls -- it only knows
 it gets a ClassificationOutput back for a given PromptConfig + email string.
-Swap the guts of `classify_email` to point at a different provider and
-everything downstream keeps working.
 """
 from __future__ import annotations
 
@@ -24,6 +22,7 @@ _client: AsyncOpenAI | None = None
 
 MAX_RETRIES = 8
 DEFAULT_BACKOFF_SECONDS = 8.0
+JSON_RETRY_BACKOFF_SECONDS = 1.0
 
 
 def _get_client() -> AsyncOpenAI:
@@ -45,6 +44,22 @@ def _parse_retry_after(error_message: str) -> float:
     if match:
         return float(match.group(1)) + 0.5  # small buffer
     return DEFAULT_BACKOFF_SECONDS
+
+
+def retry_delay(error_message: str) -> float | None:
+    """
+    Seconds to wait before retrying, or None if the error is not retryable.
+
+    - 429 rate limits: provider-side throttling, not a prompt-quality signal.
+    - json_validate_failed: the provider's JSON mode rejected one generation;
+      a fresh attempt usually succeeds, so retry quickly.
+    """
+    lowered = error_message.lower()
+    if "429" in error_message or "rate_limit" in lowered:
+        return _parse_retry_after(error_message)
+    if "json_validate_failed" in lowered:
+        return JSON_RETRY_BACKOFF_SECONDS
+    return None
 
 
 @dataclass
@@ -72,15 +87,15 @@ async def classify_email(config: PromptConfig, email_text: str) -> Classificatio
 
     Returns a ClassificationResult even on failure (bad JSON, API error) so
     the eval runner can score "the model returned garbage" as a failure
-    rather than crashing the whole run. Rate limit (429) errors are retried
-    with backoff rather than counted as a failure immediately, since a
-    provider-side rate limit is not a signal about prompt quality.
+    rather than crashing the whole run. Transient provider errors (rate
+    limits, rejected JSON generations) are retried first.
     """
     client = _get_client()
     messages = _build_messages(config, email_text)
 
     start = time.perf_counter()
     last_error: str | None = None
+    response = None
 
     for attempt in range(MAX_RETRIES):
         try:
@@ -92,26 +107,20 @@ async def classify_email(config: PromptConfig, email_text: str) -> Classificatio
             )
             break
         except Exception as e:
-            error_str = str(e)
-            last_error = error_str
-            is_rate_limit = "429" in error_str or "rate_limit" in error_str.lower()
-            if is_rate_limit and attempt < MAX_RETRIES - 1:
-                wait_seconds = _parse_retry_after(error_str)
-                await asyncio.sleep(wait_seconds)
+            last_error = str(e)
+            delay = retry_delay(last_error)
+            if delay is not None and attempt < MAX_RETRIES - 1:
+                await asyncio.sleep(delay)
                 continue
-            latency_ms = (time.perf_counter() - start) * 1000
-            return ClassificationResult(
-                output=None, raw_text="", latency_ms=latency_ms,
-                prompt_tokens=0, completion_tokens=0, error=error_str,
-            )
-    else:
-        latency_ms = (time.perf_counter() - start) * 1000
+            break
+
+    latency_ms = (time.perf_counter() - start) * 1000
+
+    if response is None:
         return ClassificationResult(
             output=None, raw_text="", latency_ms=latency_ms,
             prompt_tokens=0, completion_tokens=0, error=last_error,
         )
-
-    latency_ms = (time.perf_counter() - start) * 1000
 
     raw_text = response.choices[0].message.content or ""
     usage = response.usage

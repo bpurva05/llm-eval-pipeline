@@ -6,6 +6,17 @@ on:
       - "prompts/**"
       - "golden_dataset/**"
       - "src/**"
+      - "run_eval.py"
+      - ".github/workflows/eval.yml"
+  # Runs on main after every merge so PRs have a fresh baseline to diff against.
+  push:
+    branches: [main]
+    paths:
+      - "prompts/**"
+      - "golden_dataset/**"
+      - "src/**"
+      - "run_eval.py"
+      - ".github/workflows/eval.yml"
 
 jobs:
   eval:
@@ -16,6 +27,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # needed to diff the PR against main
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -31,24 +44,20 @@ jobs:
       - name: Install dependencies
         run: pip install -r requirements.txt
 
-      - name: Restore eval history
-        uses: actions/cache@v4
+      # PRs can read caches saved on main; main reads its own latest.
+      - name: Restore eval history from main
+        uses: actions/cache/restore@v4
         with:
           path: data/eval_history.db
-          # Keyed on the base branch so PRs diff against main's latest run,
-          # not against another in-flight PR's run.
-          key: eval-history-${{ github.base_ref }}
-          restore-keys: eval-history-
+          key: eval-history-main-${{ github.run_id }}
+          restore-keys: eval-history-main-
 
       - name: Determine changed prompt version
         id: prompt
+        if: github.event_name == 'pull_request'
         run: |
-          CHANGED=$(git diff --name-only origin/${{ github.base_ref }} -- prompts/ | grep -oP 'classifier_\K[^.]+' | tail -1)
-          if [ -z "$CHANGED" ]; then
-            echo "version=" >> "$GITHUB_OUTPUT"
-          else
-            echo "version=$CHANGED" >> "$GITHUB_OUTPUT"
-          fi
+          CHANGED=$(git diff --name-only origin/${{ github.base_ref }}...HEAD -- prompts/ | grep -oP 'classifier_\K[^.]+' | tail -1 || true)
+          echo "version=$CHANGED" >> "$GITHUB_OUTPUT"
 
       - name: Run eval
         id: run_eval
@@ -57,12 +66,13 @@ jobs:
           OPENAI_BASE_URL: https://api.groq.com/openai/v1
           JUDGE_MODEL: openai/gpt-oss-20b
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         run: |
+          ARGS="--concurrency 2 --report-url $RUN_URL"
           if [ -n "${{ steps.prompt.outputs.version }}" ]; then
-            python run_eval.py --prompt-version ${{ steps.prompt.outputs.version }} --concurrency 2
-          else
-            python run_eval.py --concurrency 2
+            ARGS="$ARGS --prompt-version ${{ steps.prompt.outputs.version }}"
           fi
+          python run_eval.py $ARGS
 
       - name: Upload HTML report artifact
         if: always()
@@ -71,24 +81,25 @@ jobs:
           name: eval-report
           path: reports/*.html
 
-      - name: Save eval history for future runs
-        if: always()
+      # Only main records the baseline; PR runs never overwrite it.
+      - name: Save eval history as new main baseline
+        if: github.event_name == 'push' && always()
         uses: actions/cache/save@v4
         with:
           path: data/eval_history.db
-          key: eval-history-${{ github.base_ref }}-${{ github.run_id }}
+          key: eval-history-main-${{ github.run_id }}
 
       - name: Comment on PR
-        if: always()
+        if: github.event_name == 'pull_request' && always()
         uses: actions/github-script@v7
         with:
           script: |
             const fs = require('fs');
             const files = fs.existsSync('reports') ? fs.readdirSync('reports').filter(f => f.endsWith('.html')) : [];
-            const latest = files.sort().pop();
-            const body = latest
-              ? `🧪 **Eval pipeline ran.** See the \`eval-report\` artifact for the full diff report (regressions, per-category accuracy, trend chart).`
-              : `🧪 Eval pipeline ran but no report was generated -- check the job logs.`;
+            const runUrl = `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
+            const body = files.length
+              ? `🧪 **Eval pipeline ran.** Download the \`eval-report\` artifact from the [workflow run](${runUrl}) for the full diff report.`
+              : `🧪 Eval pipeline ran but no report was generated. Check the [job logs](${runUrl}).`;
             github.rest.issues.createComment({
               issue_number: context.issue.number,
               owner: context.repo.owner,
